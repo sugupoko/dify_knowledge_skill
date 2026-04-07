@@ -1,0 +1,171 @@
+version: 1
+project_name: "simple_faq_example"
+created_at: "2026-04-06T10:00:00"
+updated_at: "2026-04-06T15:00:00"
+
+assess:
+  status: "completed"
+  completed_at: "2026-04-06T10:30:00"
+  goal: "社内ヘルプデスク（総務部）のFAQボットを構築"
+  target_users: "全社員（約200名）"
+  current_situation: "メールで問い合わせ、総務担当者が手動で回答。月50件程度"
+  documents:
+    - name: "faq_sample.xlsx"
+      type: "faq"
+      items: 30
+      language: "ja"
+      quality: "要変換"
+      issues:
+        - "人向けFAQ。結論が後に来る項目が多い"
+        - "1項目に複数論点が含まれるものが10件程度"
+  user_state: "聞きたいことは分かっているがキーワードを知らない"
+  user_state_rationale: "総務への問い合わせは具体的な用件があるが、適切な言い方や担当窓口が分からない社員が多い"
+  info_structure: "1箇所で完結"
+  info_structure_rationale: "総務FAQは1つの質問に1つの答えが対応する単純Q&A。条件分岐は軽微"
+  recommended_means: "chatbot"
+  means_rationale: "FAQ30件程度、単一部門、単純Q&A。チャットボットで十分"
+  alternative_means: "chatflow"
+  alternative_rationale: "将来的にIT部門のFAQも追加する場合"
+  knowledge_types:
+    faq:
+      needed: true
+      estimated_count: 45
+      source: "既存FAQ(30件)を変換・分割して約45件"
+    support_docs:
+      needed: false
+      types: []
+    operation_info:
+      needed: true
+      types: ["エスカレーションルール"]
+  assumptions:
+    - key: "faq_count_after_split"
+      value: 45
+      confidence: "medium"
+      note: "30件中10件が分割対象、各2-3件に分割"
+    - key: "query_volume"
+      value: 50
+      unit: "件/月"
+      confidence: "high"
+      note: "現在のメール問い合わせ実績"
+  missing_info:
+    - "よくある問い合わせのトップ10"
+  questions_for_stakeholder:
+    - "ボットが答えてはいけない範囲はありますか？"
+
+design:
+  status: "completed"
+  completed_at: "2026-04-06T12:00:00"
+  knowledge_bases:
+    - name: "総務FAQ"
+      type: "faq"
+      estimated_items: 45
+      source_docs: ["faq_sample.xlsx"]
+      chunking:
+        strategy: "1faq_1chunk"
+        target_tokens: "128-512"
+  faq_generation:
+    method: "conversion"
+    prompt_template: "reference/prompt_templates.md#パターンC"
+    review_required: true
+    output_format: "csv"
+    output_file: "knowledge/faq_draft.csv"
+  metadata:
+    fields:
+      - name: "category"
+        description: "カテゴリ（手続き/基準値/申請/その他）"
+      - name: "synonyms"
+        description: "言い換え・別名"
+      - name: "source"
+        description: "参照元"
+  prompt_design:
+    system_prompt: |
+      あなたは総務部のFAQアシスタントです。
+      ナレッジベースの情報に基づいて回答してください。
+      該当する情報がない場合は「総務部（内線1234）にお問い合わせください」と回答してください。
+      回答は3-5文で簡潔にまとめてください。
+
+build:
+  status: "completed"
+  completed_at: "2026-04-06T14:00:00"
+  method: "ui_guide"
+  dify_config:
+    app_type: "chatbot"
+    app_name: "総務FAQBot"
+    model: "gpt-4o-mini"
+    knowledge_bases:
+      - name: "総務FAQ"
+        status: "created"
+        document_count: 45
+        retrieval_mode: "semantic"
+        top_k: 3
+        score_threshold: 0.5
+  steps_completed:
+    - "ナレッジベース作成"
+    - "FAQ変換・アップロード"
+    - "チャットボット作成"
+    - "プロンプト設定"
+    - "初期テスト"
+  build_guide_file: "reports/build_guide.md"
+
+eval:
+  status: "completed"
+  completed_at: "2026-04-06T15:00:00"
+  test_queries: 25
+  results:
+    retrieval:
+      accuracy: 0.88
+      details: "22/25 正しいFAQをtop_3に含む"
+    groundedness:
+      score: 0.92
+      details: "23/25 FAQの情報のみで回答"
+    completeness:
+      score: 0.76
+      details: "19/25 必要な条件を全て含む"
+    resolution:
+      estimated: 0.75
+      note: "テスト質問での推定"
+  gaps:
+    - type: "retrieval_miss"
+      description: "略語（有休、経精）で検索すると正しいFAQが拾えない"
+      count: 2
+      fix: "言い換え・別名を追加"
+    - type: "completeness_miss"
+      description: "例外条件の記載が不足"
+      count: 4
+      fix: "FAQに例外条件を追記"
+  improvements:
+    - priority: "high"
+      action: "略語の言い換えを追加"
+      expected_impact: "retrieval +8%"
+    - priority: "medium"
+      action: "例外条件を追記"
+      expected_impact: "completeness +15%"
+  eval_report_file: "reports/eval_report.md"
+
+report:
+  status: "completed"
+  completed_at: "2026-04-06T16:00:00"
+  output_file: "reports/v1_proposal.md"
+  deployment:
+    target_users: "総務部（第1フェーズ）→ 全社（第2フェーズ）"
+    access_method: "Dify共有URL（PoC）→ 社内ポータル埋め込み（本番）"
+  maintenance:
+    faq_review_cycle: "月次"
+    responsible_team: "総務部 + DX推進担当"
+  cost_estimate:
+    initial:
+      person_days: 3
+    monthly:
+      api_cost: "約500円/月（gpt-4o-mini、月50件想定）"
+      maintenance_hours: 2
+  proposals:
+    - id: "A"
+      name: "総務FAQボット（PoC）"
+      cost: "3人日 + 月500円"
+      effect: "問い合わせの60%を自動化（推定）"
+      recommended: true
+    - id: "B"
+      name: "全社展開（チャットフロー化）"
+      cost: "10人日 + 月2,000円"
+      effect: "問い合わせの80%を自動化（推定）"
+      recommended: false

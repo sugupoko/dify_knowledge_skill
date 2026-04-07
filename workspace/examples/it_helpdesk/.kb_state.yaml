@@ -1,0 +1,491 @@
+version: 1
+project_name: "社内ITヘルプデスクチャットボット"
+created_at: "2026-04-06T00:00:00"
+updated_at: "2026-04-06T18:00:00"
+
+# --- /kb-assess の出力 ---
+assess:
+  status: "completed"
+  completed_at: "2026-04-06T00:00:00"
+
+  # 目標と背景
+  goal: "社内ITヘルプデスクへの繰り返し問い合わせを自動化し、月200件の50%（100件）をボットで解決したい"
+  target_users: "社内従業員 約500名（非エンジニアが大半）"
+  current_situation: "ITヘルプデスク3名体制で月約200件を手動対応。同じ質問が繰り返される。夜間・休日対応不可。"
+
+  # ドキュメント分析
+  documents:
+    - name: "helpdesk_inquiries.md"
+      type: "qa_log"
+      items: 50
+      language: "ja"
+      quality: "要変換"
+      issues:
+        - "回答が含まれていない生の問い合わせログ。FAQのQ（質問文）抽出・トピック分析に活用する"
+        - "緊急インシデント系（ランサムウェア、情報漏洩）が一般問い合わせと混在"
+        - "「なんかPCの調子が悪い」など曖昧な質問を含む"
+      categories:
+        - name: "VPN・ネットワーク"
+          count: 5
+        - name: "パスワード・アカウント"
+          count: 5
+        - name: "PC・ハードウェア"
+          count: 6
+        - name: "ソフトウェア・ライセンス"
+          count: 5
+        - name: "メール・Teams"
+          count: 6
+        - name: "セキュリティ"
+          count: 5
+        - name: "プリンター・複合機"
+          count: 4
+        - name: "申請・手続き"
+          count: 4
+        - name: "クラウドサービス・SaaS"
+          count: 4
+        - name: "障害・トラブル（緊急度高）"
+          count: 4
+        - name: "よくわからない系"
+          count: 2
+
+    - name: "it_manual.md"
+      type: "manual"
+      chapters: 10
+      language: "ja"
+      quality: "良好"
+      issues:
+        - "人向け文書（マニュアル形式）。FAQへの変換作業が必要"
+        - "最終更新日の記載なし。最新性の確認が必要"
+      chapters_list:
+        - "1. VPN接続"
+        - "2. アカウント・パスワード管理"
+        - "3. PC管理"
+        - "4. ソフトウェア管理"
+        - "5. メール・コミュニケーション"
+        - "6. プリンター・複合機"
+        - "7. セキュリティルール"
+        - "8. 備品・購入"
+        - "9. クラウドサービス・SaaS"
+        - "10. 障害発生時の対応"
+
+  # 手段選定（2軸）
+  user_state: "聞きたいことは分かっているがキーワードを知らない"
+  user_state_rationale: "問い合わせログの表現は日常語（VPN繋がらない、パスワード忘れた等）で技術用語は使われていない。非エンジニアが大半の社内環境では、会話形式が検索型より使いやすい。"
+  info_structure: "1箇所で完結する"
+  info_structure_rationale: "問い合わせログ50件の約80%（40件）はマニュアルの特定の章・節で回答できる。残り10件程度は条件分岐・緊急対応が必要だが、エスカレーション設計で対応可能。複数情報源を組み合わせる必要はない。"
+
+  # 推奨手段
+  recommended_means: "chatbot"
+  means_rationale: "ユーザー状態「聞きたいことは分かっているがキーワードを知らない」× 情報構造「1箇所で完結」の組み合わせ。FAQ未整備・夜間対応ニーズ・非エンジニアの3条件がチャットボットの価値を最大化。Ollama（ローカルLLM）環境ではエージェントより予測可能なチャットボットが有利。推定FAQ件数60〜80件はチャットボット向きの100件以下に収まる。"
+  alternative_means: "chatflow"
+  alternative_rationale: "解決率が50%目標に届かない場合、カテゴリ別ルーティング（Question Classifier）を追加することで精度向上が見込める。チャットボットでPoC後に段階的に移行することを推奨。"
+
+  # 必要なナレッジの種類
+  knowledge_types:
+    faq:
+      needed: true
+      estimated_count: 70
+      estimated_range: "60〜80件"
+      source: "マニュアルから変換（50〜60件）+ 問い合わせログからの補完（10〜20件）"
+      priority_categories:
+        - "パスワード・アカウント"
+        - "VPN・ネットワーク"
+        - "PC・ハードウェア"
+        - "メール・Teams"
+        - "セキュリティ（エスカレーション設計を含む）"
+        - "申請・手続き"
+    support_docs:
+      needed: true
+      types:
+        - name: "手順書"
+          reason: "PCセットアップ（7ステップ）、パスワードリセット（5ステップ）等、5ステップ超の手順はFAQに収めず層2として管理"
+        - name: "規程・ポリシー"
+          reason: "パスワードポリシー、データ持ち出し禁止、BYOD規程等"
+        - name: "用語集"
+          reason: "GlobalProtect、スプリットトンネル、MDM等の技術用語。非エンジニア向けに別名・略語辞書として整備"
+    operation_info:
+      needed: true
+      types:
+        - name: "エスカレーションルール"
+          priority: "必須"
+          reason: "ランサムウェア・情報漏洩などのインシデントはボットが処理すべきでない。即座に内線9999へ繋ぐルールが必要"
+        - name: "禁止事項"
+          priority: "必須"
+          reason: "個人情報・パスワード直接確認・法的判断等は回答禁止"
+        - name: "更新管理"
+          priority: "中"
+          reason: "マニュアル更新日不明。古い情報での回答リスクあり"
+
+  # Dify環境
+  dify_environment:
+    hosting: "self-hosted"
+    llm: "Ollama（ローカルLLM）"
+    notes:
+      - "チャンクサイズは小さめ（128〜256トークン）を推奨"
+      - "結論先出し原則の厳守（Lost-in-the-Middle問題がローカルLLMで顕著）"
+      - "システムプロンプトで「ナレッジベースにない情報は答えない」を明示"
+      - "使用するOllamaモデルの日本語対応状況の確認が必要"
+
+  # 仮定と不足情報
+  assumptions:
+    - key: "faq_count"
+      value: 70
+      unit: "件"
+      range: "60〜80件"
+      confidence: "medium"
+      note: "マニュアル10章 × 平均6〜8件のFAQ化で推定"
+    - key: "manual_coverage"
+      value: 70
+      unit: "%"
+      confidence: "medium"
+      note: "問い合わせログ50件中、マニュアルに対応記述がある割合を目視確認で約35件（70%）"
+    - key: "query_volume"
+      value: 200
+      unit: "件/月"
+      confidence: "high"
+      note: "ヒアリング結果より"
+    - key: "automation_target"
+      value: 50
+      unit: "%（月100件）"
+      confidence: "high"
+      note: "ヒアリング結果より（成功基準）"
+    - key: "ollama_model_class"
+      value: "7B〜13B"
+      unit: "パラメータ規模"
+      confidence: "low"
+      note: "Self-hosted + Ollamaの一般的な構成から推定。実際のモデル名・バージョン未確認"
+    - key: "after_hours_queries"
+      value: 25
+      unit: "% （月50件程度）"
+      confidence: "low"
+      note: "夜間・休日の問い合わせ比率。実績データなし"
+
+  missing_info:
+    - "よくある問い合わせのトップ10〜20（実績ベース） — FAQの優先順位付けに必要"
+    - "マニュアルの最終更新日・バージョン情報 — 古い情報でFAQを作らないために必要"
+    - "ボットが答えてはいけない範囲の明文化 — エスカレーションルール設計に必要"
+    - "カテゴリ別の問い合わせ件数内訳 — FAQの優先カテゴリを決定するために必要"
+    - "Ollamaで使用するモデル名・バージョン — チャンクサイズ・プロンプト設計に影響"
+    - "Difyのバージョン（v0.x.x） — 機能の使用可否確認に必要"
+
+  # 出力ファイル
+  report_file: "reports/assess_report.md"
+
+# --- /kb-design の出力 ---
+design:
+  status: "completed"
+  completed_at: "2026-04-06T10:00:00"
+
+  # ナレッジベース設計
+  knowledge_bases:
+    - name: "ITヘルプデスクFAQ"
+      type: "faq"
+      estimated_items: 70
+      source_docs:
+        - "it_manual.md（全10章）"
+        - "helpdesk_inquiries.md（トピック補完）"
+      chunking:
+        strategy: "1faq_1chunk"
+        mode: "automatic"
+        target_tokens: "128-256"
+        note: "Ollama環境向けに小さめのチャンクサイズを設定"
+      retrieval:
+        mode: "hybrid"
+        top_k: 5
+        score_threshold: 0.5
+        reranking: "推奨（利用可能な場合）"
+
+  # FAQ生成仕様
+  faq_generation:
+    method: "two_step"
+    output_format: "tsv"
+    output_file: "data/generated_faq.md"
+    columns:
+      - "No"
+      - "カテゴリ"
+      - "質問"
+      - "回答"
+      - "条件/例外"
+      - "次の行動"
+      - "エスカレーション"
+      - "参照元"
+      - "言い換えキーワード"
+    total_faqs: 70
+    categories:
+      - name: "VPN・ネットワーク"
+        count: 8
+      - name: "パスワード・アカウント"
+        count: 9
+      - name: "PC・ハードウェア"
+        count: 9
+      - name: "ソフトウェア・ライセンス"
+        count: 7
+      - name: "メール・Teams"
+        count: 8
+      - name: "プリンター・複合機"
+        count: 4
+      - name: "セキュリティ"
+        count: 9
+      - name: "申請・手続き"
+        count: 4
+      - name: "クラウド・SaaS"
+        count: 6
+      - name: "障害・インシデント"
+        count: 6
+
+  # プロンプト設計
+  prompt_design:
+    system_prompt_summary: "ナレッジベースの情報のみで回答。結論先出し。条件・例外を明示。緊急インシデント（ランサムウェア・情報漏洩）は即座にエスカレーション。禁止事項：個人パスワード確認・法的判断・人事給与情報。"
+    escalation_keywords:
+      - "ランサムウェア"
+      - "ウイルス"
+      - "不正アクセス"
+      - "情報漏洩"
+      - "誤送信"
+      - "システム全体障害"
+    fallback_message: "この質問については、ヘルプデスク（内線9999 / helpdesk@example.co.jp）にお問い合わせください"
+    start_message: "ITヘルプデスクアシスタントです。VPN、パスワード、PC、メール、ソフトウェアなどに関する質問にお答えします。"
+    suggested_questions:
+      - "VPNに接続できないのですが"
+      - "パスワードを忘れました"
+      - "新しいソフトウェアを申請したい"
+
+  # 出力ファイル
+  report_file: "reports/design_report.md"
+
+# --- /kb-build の出力 ---
+build:
+  status: "completed"
+  completed_at: "2026-04-06T14:00:00"
+
+  # 構築方法
+  method: "hybrid"
+  method_note: "ナレッジベース作成・FAQアップロードはAPI、アプリ設定・プロンプト調整はDify UI"
+
+  # Dify設定
+  dify_config:
+    app_type: "chatbot"
+    app_name: "社内ITヘルプデスクBot"
+    hosting: "self-hosted"
+    model_provider: "ollama"
+    model_recommended: "qwen2.5:14b"
+    model_alternative: "llama3.1:8b または elyza:jp8b"
+    model_params:
+      temperature: 0.2
+      max_tokens: 512
+      top_p: 0.9
+    knowledge_bases:
+      - name: "ITヘルプデスクFAQ"
+        status: "構築手順書作成済み（未実デプロイ）"
+        document_count: 70
+        retrieval_mode: "hybrid"
+        top_k: 5
+        score_threshold: 0.5
+        indexing_technique: "high_quality"
+        chunking_max_tokens: 256
+
+  # 構築手順の記録
+  steps_documented:
+    - "事前準備（FAQデータ確認・Dify/Ollama接続確認）"
+    - "ナレッジベース作成（Dify Console API: POST /datasets）"
+    - "FAQデータアップロード（1FAQ 1ドキュメント方式、API）"
+    - "インデクシング確認"
+    - "チャットボットアプリ作成（Dify UI）"
+    - "Ollamaモデル設定（Temperature: 0.2）"
+    - "システムプロンプト設定"
+    - "ナレッジベース接続（Hybrid / Top K: 5 / Score: 0.5）"
+    - "開始メッセージ・サジェスト質問設定"
+    - "初期テストチェックリスト（正常系・言い換え・フォールバック・エスカレーション）"
+
+  # 注記: サンプルプロジェクトのため実際のAPI呼び出しは未実施
+  note: "本ガイドはサンプルプロジェクト向け構築手順書。実環境での展開時は build_guide.md の手順に従いAPI・UIで実行する。"
+
+  # 出力ファイル
+  build_guide_file: "reports/build_guide.md"
+
+# --- /kb-eval の出力 ---
+eval:
+  status: "completed"
+  completed_at: "2026-04-06T16:00:00"
+
+  # テスト質問セット
+  test_queries:
+    total: 20
+    source: "helpdesk_inquiries.md（50件）から代表20件を選出"
+    breakdown:
+      normal: 14
+      paraphrase: 3
+      escalation: 2
+      out_of_scope: 1
+    selection_criteria:
+      - "各カテゴリから最低1件（網羅性確保）"
+      - "問い合わせ件数の多いカテゴリ優先"
+      - "緊急インシデント系（ランサムウェア・情報漏洩）を必ず含める"
+
+  # 評価観点と目標値
+  evaluation_axes:
+    retrieval:
+      metric: "Hit Rate@3"
+      target_poc: 0.80
+      target_production: 0.90
+      mrr_target_poc: 0.70
+      test_method: "Dify管理画面 Retrieval Test"
+      test_queries_count: 17
+    groundedness:
+      metric: "Groundedness Score（FAQに基づいた回答率）"
+      target: 0.90
+      not_grounded_max: 0.05
+    completeness:
+      metric: "Completeness Score（条件・例外・次の行動が揃った回答率）"
+      target: 0.70
+      required_elements:
+        - "結論"
+        - "主な条件"
+        - "主な例外"
+        - "次の行動"
+    fallback:
+      metric: "Fallback Accuracy"
+      target: 0.90
+      escalation_correctness_target: 1.00
+      escalation_test_queries:
+        - id: "T018"
+          query: "ランサムウェアかもしれません"
+          expected: "LANケーブルを抜く + 内線9999に電話"
+        - id: "T019"
+          query: "社外秘ファイルを誤送信してしまいました"
+          expected: "上長報告 + 情報セキュリティ部門連絡"
+
+  # ギャップ分析
+  gaps:
+    faq_gaps_total: 16
+    high_priority_gaps:
+      - description: "両面印刷・カラー/モノクロ切り替えの方法"
+        source_inquiry: "問い合わせ035"
+        fix: "FAQを新規追加"
+      - description: "スキャンデータを自分のメールに送る設定"
+        source_inquiry: "問い合わせ036"
+        fix: "FAQを新規追加"
+      - description: "共有メールボックスの新規作成申請"
+        source_inquiry: "問い合わせ023"
+        fix: "FAQを新規追加"
+      - description: "メーリングリストへのメンバー追加申請"
+        source_inquiry: "問い合わせ026"
+        fix: "FAQを新規追加"
+      - description: "TeamsでのPC画面共有が相手に真っ黒に見える"
+        source_inquiry: "問い合わせ025"
+        fix: "FAQを新規追加"
+    medium_priority_gaps:
+      - "一括申請フロー（問い合わせ038）"
+      - "管理者権限申請フロー（問い合わせ040）"
+      - "新規SaaS審査手順詳細（問い合わせ042）"
+      - "Zoom録画機能の可否（問い合わせ021）"
+      - "AWSアカウント作成相談先（問い合わせ043）"
+
+  # 改善提案
+  improvements:
+    - priority: "high"
+      action: "言い換えキーワードの拡充（略語・俗称を追加）"
+      expected_impact: "Hit Rate@3 +5〜10%"
+    - priority: "high"
+      action: "高優先度FAQギャップ5件を追加（全社展開前）"
+      expected_impact: "カバレッジ +5件"
+    - priority: "medium"
+      action: "プロンプトに「条件・例外・次の行動を必ず含めること」を明示"
+      expected_impact: "Completeness Score +10%"
+    - priority: "low"
+      action: "解決率が50%に届かない場合はチャットフロー移行を検討"
+      expected_impact: "Hit Rate@3 +10〜15%"
+
+  # 出力ファイル
+  eval_plan_file: "reports/eval_plan.md"
+
+# --- /kb-report の出力 ---
+report:
+  status: "completed"
+  completed_at: "2026-04-06T18:00:00"
+
+  output_file: "reports/final_report.md"
+
+  # 展開提案
+  deployment:
+    recommended_approach: "段階的展開（PoC → パイロット → 全社）"
+    phases:
+      - phase: "PoC"
+        target_users: "IT部門担当者 5〜10名"
+        access_method: "Dify共有URL（社内VPN内）"
+        duration: "2週間"
+        success_criteria:
+          - "Hit Rate@3 ≥ 70%"
+          - "Escalation Correctness = 100%"
+          - "明らかなハルシネーションゼロ"
+        person_days: 4
+      - phase: "パイロット"
+        target_users: "1部門 約50名"
+        access_method: "社内ポータルへのiframe埋め込み"
+        duration: "1ヶ月"
+        success_criteria:
+          - "Good率 ≥ 60%"
+          - "問い合わせ件数の減少傾向"
+        person_days: 2
+      - phase: "全社展開"
+        target_users: "全社員 約500名"
+        access_method: "Slack/Teamsボット統合 + 社内ポータルウィジェット"
+        duration: "2〜3ヶ月"
+        success_criteria:
+          - "自動解決率 ≥ 50%（月100件以上）"
+          - "Good率 ≥ 70%"
+        person_days: 3
+
+  # 運用計画
+  maintenance:
+    faq_review_cycle: "月次（月末定期レビュー）"
+    emergency_update: "随時（制度変更・インシデント発生時）"
+    responsible_team: "IT部門 ナレッジ管理担当（1名を指名）"
+    monthly_hours: 5.2
+    quarterly_eval: "kb-eval を3ヶ月ごとに再実行"
+    update_triggers:
+      - "社内IT規程・ポリシーの変更"
+      - "マニュアルのバージョンアップ"
+      - "同じ質問が3件以上ヘルプデスクに来た場合"
+      - "Bad評価が3件以上同じ質問に集中した場合"
+      - "解決率が70%を下回った場合"
+
+  # KPI
+  kpis:
+    - name: "ボット解決率"
+      target: "≥ 50%（月100件以上）"
+      measure_method: "ヘルプデスク問い合わせ件数の削減率"
+      frequency: "月次"
+    - name: "Good評価率"
+      target: "≥ 70%"
+      measure_method: "DifyフィードバックボタンのGood/Bad比率"
+      frequency: "月次"
+    - name: "エスカレーション率"
+      target: "≤ 20%"
+      measure_method: "フォールバック件数 / 全問い合わせ件数"
+      frequency: "月次"
+
+  # コスト見積もり（Ollama環境: LLM API費用ゼロ）
+  cost_estimate:
+    initial:
+      description: "初期構築（ナレッジ設計確認・Dify構築・テスト・Slack連携・ドキュメント）"
+      person_days: 7
+      llm_api_cost: "0円（Ollama Self-hostedのため）"
+    monthly:
+      server_cost_min: "3000円/月（既存サーバー流用時）"
+      server_cost_max: "58000円/月（新規GPUサーバー調達時）"
+      maintenance_hours: 5.2
+      maintenance_cost: "15500円/月（時給3,000円換算）"
+      llm_api_cost: "0円/月（Ollama Self-hostedのため）"
+    roi:
+      current_monthly_cost: "150000円/月（月50時間 × 3,000円）"
+      estimated_monthly_saving: "75000円/月（50%削減）"
+      estimated_monthly_running: "19000〜24000円/月"
+      net_monthly_saving: "51000〜56000円/月"
+      payback_period: "約3ヶ月"
+
+  # FAQ追加計画
+  faq_addition_plan:
+    high_priority_count: 5
+    high_priority_estimated_hours: 2.5
+    target_timing: "全社展開前（パイロット評価後）"
