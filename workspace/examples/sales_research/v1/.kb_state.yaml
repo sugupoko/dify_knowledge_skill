@@ -1,0 +1,263 @@
+version: 1
+kb_version: "v1"
+project_name: "営業向け競合調査アシスタント"
+created_at: "2026-04-06T10:00:00"
+updated_at: "2026-04-06T12:30:00"
+
+# --- /kb-assess の出力 ---
+assess:
+  status: "completed"
+  completed_at: "2026-04-06T10:45:00"
+
+  # 目標と背景
+  goal: "営業チームが提案前の情報収集（競合調査・強み整理・過去事例参照）を30分以内に完了できるエージェントを構築する"
+  target_users: "営業チーム15名"
+  current_situation: "提案前の情報収集に1件あたり2〜3時間かかる。競合情報が散在。過去事例の活用ができていない"
+
+  # ドキュメント分析
+  documents:
+    - name: "data/product_catalog.md"
+      type: "catalog"
+      pages: 1
+      language: "ja"
+      quality: "良好"
+      notes: "5製品の機能・価格・強み・弱みが構造化されている"
+    - name: "data/competitor_info.md"
+      type: "other"
+      pages: 1
+      language: "ja"
+      quality: "良好"
+      notes: "競合3社の比較ポイント・勝ち負けの場面が整理されている"
+    - name: "data/sales_playbook.md"
+      type: "manual"
+      pages: 1
+      language: "ja"
+      quality: "良好"
+      notes: "反論対応・値引き基準・エスカレーション基準が章立てで整理されている"
+    - name: "data/past_deals.md"
+      type: "qa_log"
+      pages: 1
+      language: "ja"
+      quality: "良好"
+      notes: "受注5件・失注5件に勝因・敗因分析が付いている"
+
+  # 手段選定（2軸）
+  user_state: "何を聞けばいいか分からない（+ 複雑）"
+  user_state_rationale: "営業担当者は提案先ごとに状況が異なり、何を調べれば良いかを事前に定式化できない。「来週A社への提案があるんだけど」という曖昧な出発点から調査が始まる"
+  info_structure: "複数箇所を組み合わせる"
+  info_structure_rationale: "1つの提案準備には製品カタログ・競合情報・過去事例・プレイブックの4つのナレッジソースを横断して参照する必要がある。さらに外部Web検索（最新競合情報・顧客ニュース）も必要"
+
+  # 推奨手段
+  recommended_means: "agent"
+  means_rationale: "軸1=何を聞けばいいか分からない（+ 複雑）、軸2=複数箇所を組み合わせる → 選定マトリクスよりエージェントが最適。多段推論・複数ナレッジ横断・外部ツール使い分けが全て必要なため"
+  alternative_means: "chatflow"
+  alternative_rationale: "質問が定式化されているケース（競合比較・反論対応）のみならチャットフローで対応可能。まずPoCとしてチャットフローを構築し、複合質問が多い場合にエージェントに移行する段階的アプローチも有効"
+
+  # 必要なナレッジの種類
+  knowledge_types:
+    faq:
+      needed: true
+      estimated_count: 70
+      source: "product_catalog.md(30件) + competitor_info.md(20件) + sales_playbook.md(20件) + past_deals.md(10件) から生成"
+    support_docs:
+      needed: true
+      types:
+        - "製品比較表（競合との対比）"
+        - "値引き基準・エスカレーション基準（ポリシー文書）"
+        - "業種別提案ポイント（手順書）"
+    operation_info:
+      needed: true
+      types:
+        - "エージェントが答えてはいけない範囲（値引き率の明示、未公開情報等）"
+        - "更新管理（競合情報・価格の定期更新）"
+
+  # 仮定と不足情報
+  assumptions:
+    - key: "access_method"
+      value: "PCまたはスマートフォンからチャット形式でアクセス"
+      confidence: "high"
+      note: "Dify Self-hosted の標準的な利用形態"
+    - key: "query_volume"
+      value: "5〜15件/日"
+      confidence: "medium"
+      note: "営業チーム15名 × 週2〜3件の想定。要確認"
+    - key: "web_search_available"
+      value: true
+      confidence: "medium"
+      note: "Dify Self-hosted で Web Search ツールが利用できる環境と仮定。要確認"
+    - key: "realtime_crm_integration"
+      value: false
+      confidence: "medium"
+      note: "社内CRM/SFAとのリアルタイム連携はスコープ外と仮定。要確認"
+    - key: "language"
+      value: "日本語のみ"
+      confidence: "high"
+      note: "営業チームは全員日本語話者"
+  missing_info:
+    - "よく聞かれる質問のトップ10〜20件（FAQ優先順位付けに必要）"
+    - "Web検索ツールの利用可否（Dify Self-hosted環境の確認）"
+    - "社内CRM/SFAとのリアルタイム連携の要否"
+    - "競合情報・価格の更新フロー・担当者"
+    - "エージェントが答えてはいけない範囲の確定（値引き基準の公開範囲等）"
+
+  # 確認事項
+  questions_for_stakeholder:
+    - "エージェントが答えてはいけない範囲は何ですか？（値引き率の具体的な数字、未公開ロードマップ情報等）"
+    - "Web検索ツールは利用できる環境ですか？（Dify Self-hosted の設定確認）"
+    - "社内CRM/SFAとのリアルタイム連携は今回のスコープに含めますか？"
+    - "過去事例に含まれる顧客名（アルファベット表記）は営業チームが見ても問題ありませんか？"
+    - "競合情報の更新頻度と更新担当者を決められますか？"
+
+# --- /kb-design の出力 ---
+design:
+  status: "completed"
+  completed_at: "2026-04-06T12:30:00"
+
+  # ナレッジベース設計
+  knowledge_bases:
+    - name: "製品FAQ"
+      type: "faq"
+      estimated_items: 45
+      source_docs:
+        - "data/product_catalog.md"
+      chunking:
+        strategy: "1faq_1chunk"
+        target_tokens: "128-512"
+        chunk_size: 500
+        overlap: 0
+      retrieval:
+        mode: "semantic"
+        top_k: 5
+        score_threshold: 0.5
+      metadata_fields:
+        - "category"
+        - "product"
+        - "target_task"
+        - "source"
+        - "last_updated"
+        - "valid_until"
+
+    - name: "競合情報KB"
+      type: "faq"
+      estimated_items: 30
+      source_docs:
+        - "data/competitor_info.md"
+      chunking:
+        strategy: "1faq_1chunk"
+        target_tokens: "128-512"
+        chunk_size: 500
+        overlap: 0
+      retrieval:
+        mode: "semantic"
+        top_k: 5
+        score_threshold: 0.5
+      metadata_fields:
+        - "category"
+        - "competitor"
+        - "win_lose"
+        - "target_task"
+        - "source"
+        - "last_updated"
+
+    - name: "営業手順・ポリシーKB"
+      type: "policy"
+      estimated_items: 35
+      source_docs:
+        - "data/sales_playbook.md"
+      chunking:
+        strategy: "section_chunk"
+        target_tokens: "256-1024"
+        chunk_size: 500
+        overlap: 50
+      retrieval:
+        mode: "semantic"
+        top_k: 3
+        score_threshold: 0.6
+      metadata_fields:
+        - "category"
+        - "target_role"
+        - "target_task"
+        - "source"
+        - "last_updated"
+
+    - name: "過去事例KB"
+      type: "other"
+      estimated_items: 25
+      source_docs:
+        - "data/past_deals.md"
+      chunking:
+        strategy: "case_component_chunk"
+        target_tokens: "512-1024"
+        chunk_size: 800
+        overlap: 100
+      retrieval:
+        mode: "semantic"
+        top_k: 3
+        score_threshold: 0.5
+      metadata_fields:
+        - "deal_result"
+        - "industry"
+        - "competitor"
+        - "key_factor"
+        - "source"
+        - "last_updated"
+
+  # FAQ生成仕様
+  faq_generation:
+    method: "two_step"
+    target_docs:
+      - "data/product_catalog.md"
+      - "data/competitor_info.md"
+      - "data/sales_playbook.md"
+    estimated_count: 100
+    review_required: true
+    reviewer: "営業チームリーダー"
+    output_format: "csv"
+    output_file: "knowledge/faq_draft.csv"
+
+  # メタデータ設計
+  metadata:
+    fields:
+      - name: "category"
+        description: "ナレッジのカテゴリ"
+        values:
+          - "製品情報"
+          - "競合比較"
+          - "提案手順"
+          - "反論対応"
+          - "値引きルール"
+          - "エスカレーション"
+          - "過去事例"
+      - name: "target_task"
+        description: "いつ使うべきか（エージェントのツール選択に使用）"
+        values:
+          - "提案準備"
+          - "競合比較"
+          - "反論対応"
+          - "事例参照"
+      - name: "last_updated"
+        description: "最終更新日"
+      - name: "valid_until"
+        description: "有効期限（価格情報等）"
+
+  # プロンプト設計
+  prompt_design:
+    model: "claude-3-5-sonnet"
+    max_tool_calls: 10
+    system_prompt: |
+      あなたはTechFlow株式会社の営業チーム専用の「競合調査・提案準備アシスタント」です。
+      営業担当者が顧客への提案を準備する際に、自社製品の強み整理・競合との差別化・過去事例参照・反論対応を支援します。
+      利用可能なツール: 製品FAQ検索・競合情報検索・営業手順検索・過去事例検索・Web検索。
+      複数ツールを組み合わせて情報を収集し、営業担当者が即座に使えるフォーマットで回答してください。
+    constraints:
+      - "値引き率の具体的な確約をしない"
+      - "根拠なく競合他社を誹謗中傷しない"
+      - "未公開のロードマップ情報・内部情報を回答しない"
+      - "法的なアドバイス・契約の解釈を断言しない"
+    escalation_triggers:
+      - "ナレッジに情報がない場合は担当部署に誘導"
+      - "禁止事項に該当する場合は回答を断り担当部署に誘導"
+
+  # 設計仕様書
+  spec_file: "v1/spec.md"
+  design_report_file: "reports/design_report.md"
