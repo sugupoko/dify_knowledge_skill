@@ -261,3 +261,39 @@ design:
   # 設計仕様書
   spec_file: "v1/spec.md"
   design_report_file: "reports/design_report.md"
+
+# --- /kb-generate の出力 ---
+generate:
+  status: completed
+  completed_at: "2026-04-06T15:00:00"
+  pattern: "A"
+  total_faqs: 110
+  categories:
+    - name: "製品情報"
+      count: 30
+    - name: "競合比較"
+      count: 25
+    - name: "提案手順"
+      count: 10
+    - name: "反論対応"
+      count: 8
+    - name: "見積もりルール"
+      count: 2
+    - name: "値引きルール"
+      count: 4
+    - name: "エスカレーション"
+      count: 4
+    - name: "過去事例（受注）"
+      count: 10
+    - name: "過去事例（失注）"
+      count: 5
+    - name: "過去事例（共通パターン）"
+      count: 12
+  quality_check: "all_passed"
+  review_status: "pending"  # pending / reviewed / revised
+  output_files:
+    - "v1/knowledge/kb1_product_faq.csv"
+    - "v1/knowledge/kb2_competitor_faq.csv"
+    - "v1/knowledge/kb3_playbook_faq.csv"
+    - "v1/knowledge/kb4_deals_faq.csv"
+    - "v1/knowledge/generation_log.md"
