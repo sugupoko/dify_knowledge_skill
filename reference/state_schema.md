@@ -2,25 +2,28 @@
 
 ## 目的
 
-各スキル（/kb-assess → /kb-design → /kb-build → /kb-eval → /kb-report）の出力を構造化し、次のスキルが自動的に前の結果を参照できるようにする。
+各スキル（/kb-assess → /kb-design → /kb-build → /kb-eval → /kb-report → /kb-operate）の出力を構造化し、次のスキルが自動的に前の結果を参照できるようにする。
 
 ## 使い方
 
-各スキルは実行時に `workspace/<project>/.kb_state.yaml` を読み書きする。
+各スキルは実行時に `workspace/<project>/v1/.kb_state.yaml` を読み書きする。
+**.kb_state.yaml はバージョンフォルダ（v1/, v2/ 等）内に配置する。**
 
 ```
-/kb-assess  → .kb_state.yaml の assess セクションを書く
-/kb-design  → assess セクションを読み、design セクションを書く
+/kb-assess  → v1/.kb_state.yaml の assess セクションを書く
+/kb-design  → assess セクションを読み、design セクションを書く（spec.md も生成）
 /kb-build   → design セクションを読み、build セクションを書く
 /kb-eval    → build セクションを読み、eval セクションを書く
 /kb-report  → 全セクションを読み、レポートを生成
+/kb-operate → 全セクションを読み、運用設計書を生成
 ```
 
 ## スキーマ定義
 
 ```yaml
-# workspace/<project>/.kb_state.yaml
-version: 1
+# workspace/<project>/v1/.kb_state.yaml
+version: 1                    # スキーマバージョン（スキーマ変更時に更新）
+kb_version: "v1"              # プロジェクトのバージョン（v1, v2, ...）
 project_name: "プロジェクト名"
 created_at: "2026-04-06T10:00:00"
 updated_at: "2026-04-06T15:30:00"
@@ -245,6 +248,13 @@ eval:
       expected_impact: "completeness +15%"
   
   eval_report_file: "reports/eval_report.md"
+  
+  # 不可能性の判断（手段変更トリガー）
+  impossibility_findings:
+    - finding: "Hit Rate@3 が70%で改善の余地なし"
+      implication: "チャットボットでは精度目標を達成できない"
+      recommendation: "チャットフローへの移行を検討"
+    # 該当なしの場合: []
 
 # --- /kb-report の出力 ---
 report:
@@ -310,10 +320,12 @@ pending → in_progress → completed
 
 ### バージョン管理との連携
 ```
-追加ドキュメントが来た場合:
-  1. 現在の .kb_state.yaml を .kb_state.v1.yaml にコピー
-  2. 新しいサイクルを .kb_state.yaml で開始
-  → Before/After の比較が可能
+追加ドキュメントや制約変更が来た場合:
+  1. 新しいバージョンフォルダ（v2/）を作成
+  2. 前バージョンの spec.md を複製して更新
+  3. 新しい v2/.kb_state.yaml で /kb-assess から開始
+  → v1/.kb_state.yaml と v2/.kb_state.yaml で Before/After の比較が可能
+  → v1/spec.md と v2/spec.md を比較すれば変更点がわかる
 ```
 
 ## スキルでの参照方法

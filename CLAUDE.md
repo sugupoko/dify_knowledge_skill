@@ -29,34 +29,50 @@ dify_knowledge_skill/
 ├── CLAUDE.md                          ← このファイル（プロジェクトガイド）
 ├── KNOWLEDGE_DESIGN_MINDSET.md        ← 6つの思考回路 + チェックリスト
 ├── README.md                          ← 日本語版README
-├── .claude/commands/                  ← 5つのスキル（/kb-xxx で呼び出し）
+├── .claude/commands/                  ← 7つのスキル（/kb-xxx で呼び出し）
 │   ├── kb-assess.md                   ← 目標・文書分析 → 推奨手段の選定
-│   ├── kb-design.md                   ← ナレッジ構造設計 → FAQ生成仕様
-│   ├── kb-build.md                    ← Difyアプリ構築（API or UIガイド）
-│   ├── kb-eval.md                     ← 評価（検索・根拠・網羅性）
-│   └── kb-report.md                   ← 展開提案書の作成
+│   ├── kb-design.md                   ← ナレッジ構造設計 → FAQ生成仕様 + spec.md生成
+│   ├── kb-build.md                    ← Difyアプリ構築（API or UIガイド）+ QAチェック
+│   ├── kb-eval.md                     ← 評価（検索・根拠・網羅性）+ 不可能性判断
+│   ├── kb-report.md                   ← 展開提案書の作成
+│   ├── kb-request.md                  ← 確認依頼書の生成（業務担当者向け）
+│   └── kb-operate.md                  ← 運用設計（監視・更新・フォールバック）
 ├── reference/                         ← ナレッジ設計のベストプラクティス集
 │   ├── app_type_selection_guide.md    ← 手段選定ガイド（2軸）
 │   ├── faq_design_guide.md            ← ボット向けFAQ設計ガイド
 │   ├── knowledge_structure_guide.md   ← 3層ナレッジ設計
 │   ├── chunking_strategy_guide.md     ← チャンキング戦略
 │   ├── prompt_templates.md            ← FAQ生成用プロンプト集
-│   ├── evaluation_guide.md            ← RAG評価ガイド
+│   ├── evaluation_guide.md            ← RAG評価ガイド + 不可能性判断基準 + 手段比較テーブル
 │   ├── hearing_sheet_general.md       ← ヒアリングシート（汎用）
 │   ├── hearing_sheet_faq.md           ← ヒアリングシート（FAQ特化）
+│   ├── hearing_sheet_chatflow.md      ← ヒアリングシート（チャットフロー向け）
+│   ├── hearing_sheet_agent.md         ← ヒアリングシート（エージェント向け）
 │   ├── dify_api_reference.md          ← Dify Console API リファレンス
+│   ├── spec_template.md               ← ナレッジ設計仕様書テンプレート（プロジェクトの「今の正」）
 │   └── state_schema.md               ← .kb_state.yaml スキーマ定義
 └── workspace/                         ← ★ここで作業する
     ├── examples/                      ← サンプルプロジェクト
     │   └── simple_faq/                ← 単純FAQボットの例
-    │       ├── .kb_state.yaml
+    │       ├── v1/
+    │       │   ├── spec.md            ← ★ 仕様書（このバージョンの条件）
+    │       │   ├── .kb_state.yaml     ← スキル間の状態管理ファイル
+    │       │   ├── knowledge/         ← 設計したナレッジデータ
+    │       │   └── reports/           ← 提案書・評価レポート
     │       └── data/
     │           └── faq_sample.xlsx    ← プレースホルダー
     └── my_project/                    ← プロジェクトごとにフォルダを作成
         ├── docs/                      ← クライアントから受け取ったドキュメント
-        ├── .kb_state.yaml             ← スキル間の状態管理ファイル
-        ├── knowledge/                 ← 設計したナレッジデータ
-        └── reports/                   ← 提案書・評価レポート
+        ├── v1/                        ← バージョンごとに一式まとまる
+        │   ├── spec.md                ← ★ 仕様書（このバージョンの条件）
+        │   ├── .kb_state.yaml         ← スキル間の状態管理ファイル
+        │   ├── knowledge/             ← 設計したナレッジデータ
+        │   └── reports/               ← 提案書・評価レポート
+        └── v2/                        ← 追加ドキュメントや要件変更で新バージョン
+            ├── spec.md                ← 更新された仕様書（変更点を記載）
+            ├── .kb_state.yaml
+            ├── knowledge/
+            └── reports/
 ```
 
 ## 使い方
@@ -100,21 +116,24 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
 
 ## 出力ルール（全スキル共通）
 
-**各スキルは結果をMarkdownドキュメントとして `reports/` に保存すること。**
-ナレッジデータは `knowledge/`、評価結果は `reports/` に保存する。
+**全成果物はバージョンフォルダ（`v1/`, `v2/`, ...）内に出力する。**
+最新バージョンの `spec.md` が「今の正」。テンプレートは `reference/spec_template.md` を参照。
 
-| スキル | 出力ファイル |
+| スキル | 出力ファイル（vN/ 内） |
 |--------|-----------|
 | kb-assess | `reports/assess_report.md`（推奨手段・2軸分析含む） |
-| kb-design | `reports/design_spec.md` + `knowledge/faq_draft.csv`（FAQ下書き） |
-| kb-build | `reports/build_guide.md`（構築手順・設定値の記録） |
-| kb-eval | `reports/eval_report.md` + `reports/eval_results.json`（評価数値） |
-| kb-report | `reports/v1_proposal.md`（展開提案書、バージョン連番） |
+| kb-design | `spec.md`（初版生成） + `reports/design_spec.md` + `knowledge/faq_draft.csv` |
+| kb-build | `reports/build_guide.md`（構築手順・設定値・QAチェック結果） |
+| kb-eval | `reports/eval_report.md` + `reports/eval_results.json`（不可能性フィンディング含む） |
+| kb-report | `reports/proposal.md`（展開提案書） |
+| kb-request | `reports/request.md`（確認依頼書） |
+| kb-operate | `reports/operate_design.md`（運用設計書） |
 
 これにより:
-- 後続スキルが前のスキルの結果を参照できる
+- **spec.md を見れば「今どの条件で設計しているか」が常にわかる**
+- バージョン間の spec.md を比較すれば変更点がわかる
+- 各バージョンが独立しているので、いつでも再実行できる
 - クライアントに成果物として渡せる
-- Git で変更履歴を追跡できる
 
 ## スキル一覧
 
@@ -125,13 +144,15 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
 | **kb-build** | `/kb-build [project]` | designの後 |
 | **kb-eval** | `/kb-eval [project]` | buildの後 |
 | **kb-report** | `/kb-report [project]` | 評価が終わった後 |
+| **kb-request** | `/kb-request` | 途中で業務担当者への確認が必要な時 |
+| **kb-operate** | `/kb-operate [project]` | 提案承認後、運用設計する時 |
 
 ## ワークフロー
 
 ```
-ヒアリング → ドキュメント受領 → /kb-assess → /kb-design → /kb-build → /kb-eval → /kb-report
-                                                                        ↑    ↓
-                                                                        └── 改善サイクル
+ヒアリング → ドキュメント受領 → /kb-assess → /kb-design → /kb-build → /kb-eval → /kb-report → /kb-operate
+                                                                ↑    ↓          ↑    ↓
+                                                                └── /kb-request ←─── 改善サイクル
 ```
 
 ## 追加情報が来た時の進め方
@@ -160,6 +181,54 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
         「この質問に答えられない」「回答が不正確」
         → /kb-eval で原因分析 → /kb-design で修正
 ```
+
+## バージョンフォルダ管理
+
+バージョンごとに一式をまとめる。spec.md が各バージョンの仕様書。
+
+```
+workspace/my_project/
+├── docs/                   ← クライアントから受け取ったドキュメント（全バージョン共通）
+├── v1/
+│   ├── spec.md             ← v1 の仕様書（このバージョンの設計条件）
+│   ├── .kb_state.yaml      ← v1 のスキル間状態管理
+│   ├── knowledge/          ← v1 のナレッジデータ（FAQ CSV等）
+│   └── reports/            ← v1 の全レポート
+├── v2/
+│   ├── spec.md             ← v2 の仕様書（v1 からの変更点を記載）
+│   ├── .kb_state.yaml
+│   ├── knowledge/
+│   └── reports/
+└── ...
+```
+
+前のバージョンを残す理由:
+- v1 と v2 の spec.md を比較すれば「何が変わったか」がわかる
+- 各バージョンの eval_report.md を比較すれば Before/After が出せる
+- クライアントに変化の経緯を説明できる
+
+### Git ブランチ命名規則
+
+```bash
+# プロジェクト開始時: ブランチを作成
+git checkout -b kb/<project>/v1-initial
+
+# 作業が一段落したら: タグで結果を記録
+git tag kb/<project>/v1 -m "初回設計: FAQ150件, Hit Rate@3=0.83"
+
+# 追加ドキュメントや要件変更が来た時: 新しいブランチを作成
+git checkout -b kb/<project>/v2-add-chatflow
+
+# Before/After の確認
+git diff kb/<project>/v1..kb/<project>/v2 -- workspace/
+```
+
+**命名規則:**
+- ブランチ: `kb/<project>/<version>-<description>`
+- タグ: `kb/<project>/<version>`
+- タグメッセージ: 主要な評価結果の数値を含める
+
+---
 
 ## 対応する手段の種類
 
