@@ -71,6 +71,7 @@ Claude Code で以下のスキルを順に実行する:
 ```
 /kb-assess workspace/my_project/docs/   → 推奨手段（2軸分析） + ナレッジ種別特定
 /kb-design workspace/my_project/docs/   → ナレッジ構造設計 + FAQ生成仕様 + spec.md生成
+/kb-generate workspace/my_project/      → FAQ自動生成 + 品質チェック（ドキュメントそのままならスキップ）
 /kb-build workspace/my_project/         → Difyアプリ構築 + QAチェック
 /kb-eval workspace/my_project/          → RAG評価 + ギャップ特定 + 不可能性の判断
 /kb-report workspace/my_project/        → 展開提案書
@@ -90,9 +91,10 @@ dify_knowledge_skill/
 ├── CLAUDE.md                          ← Claude Code 向けの詳細ガイド
 ├── CHANGELOG.md                       ← 変更履歴
 ├── KNOWLEDGE_DESIGN_MINDSET.md        ← 6つの思考回路 + チェックリスト
-├── .claude/commands/                  ← 7つのスキル
+├── .claude/commands/                  ← 8つのスキル
 │   ├── kb-assess.md                   ← アセスメント
 │   ├── kb-design.md                   ← ナレッジ設計 + spec.md生成
+│   ├── kb-generate.md                 ← FAQ / ナレッジデータ自動生成
 │   ├── kb-build.md                    ← 構築 + QAチェック
 │   ├── kb-eval.md                     ← 評価 + 不可能性の判断
 │   ├── kb-report.md                   ← 展開提案

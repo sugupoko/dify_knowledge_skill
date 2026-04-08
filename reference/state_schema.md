@@ -10,12 +10,13 @@
 **.kb_state.yaml はバージョンフォルダ（v1/, v2/ 等）内に配置する。**
 
 ```
-/kb-assess  → v1/.kb_state.yaml の assess セクションを書く
-/kb-design  → assess セクションを読み、design セクションを書く（spec.md も生成）
-/kb-build   → design セクションを読み、build セクションを書く
-/kb-eval    → build セクションを読み、eval セクションを書く
-/kb-report  → 全セクションを読み、レポートを生成
-/kb-operate → 全セクションを読み、運用設計書を生成
+/kb-assess   → v1/.kb_state.yaml の assess セクションを書く
+/kb-design   → assess セクションを読み、design セクションを書く（spec.md も生成）
+/kb-generate → design セクションを読み、generate セクションを書く（FAQ生成）
+/kb-build    → generate セクションを読み、build セクションを書く
+/kb-eval     → build セクションを読み、eval セクションを書く
+/kb-report   → 全セクションを読み、レポートを生成
+/kb-operate  → 全セクションを読み、運用設計書を生成
 ```
 
 ## スキーマ定義
@@ -168,6 +169,34 @@ design:
       - "ナレッジベースの情報のみを使う"
       - "3-5文で簡潔に回答"
       - "人事評価や給与の具体的な数字は回答しない"
+
+# --- /kb-generate の出力 ---
+generate:
+  status: "completed"          # pending | in_progress | completed | skipped
+  completed_at: "2026-04-06T13:30:00"
+  
+  # 生成方式
+  approach: "faq_generation"   # faq_generation | document_direct | mixed
+  pattern: "B"                 # A(同時生成) | B(2ステップ) | C(既存FAQ変換) | null(スキップ時)
+  
+  # 生成結果
+  total_faqs: 70
+  categories:
+    - name: "VPN・ネットワーク"
+      count: 8
+    - name: "パスワード・アカウント"
+      count: 9
+  
+  # 品質チェック
+  quality_check: "all_passed"  # all_passed | issues_found
+  
+  # レビュー状況
+  review_status: "reviewed"    # pending | reviewed | revised
+  
+  # 出力ファイル
+  output_files:
+    - "v1/knowledge/faq_draft.csv"
+    - "v1/knowledge/generation_log.md"
 
 # --- /kb-build の出力 ---
 build:

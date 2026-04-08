@@ -29,9 +29,10 @@ dify_knowledge_skill/
 ├── CLAUDE.md                          ← このファイル（プロジェクトガイド）
 ├── KNOWLEDGE_DESIGN_MINDSET.md        ← 6つの思考回路 + チェックリスト
 ├── README.md                          ← 日本語版README
-├── .claude/commands/                  ← 7つのスキル（/kb-xxx で呼び出し）
+├── .claude/commands/                  ← 8つのスキル（/kb-xxx で呼び出し）
 │   ├── kb-assess.md                   ← 目標・文書分析 → 推奨手段の選定
 │   ├── kb-design.md                   ← ナレッジ構造設計 → FAQ生成仕様 + spec.md生成
+│   ├── kb-generate.md                 ← FAQ / ナレッジデータの自動生成
 │   ├── kb-build.md                    ← Difyアプリ構築（API or UIガイド）+ QAチェック
 │   ├── kb-eval.md                     ← 評価（検索・根拠・網羅性）+ 不可能性判断
 │   ├── kb-report.md                   ← 展開提案書の作成
@@ -93,22 +94,29 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
 ### Step 2: ナレッジ設計
 ```
 /kb-design workspace/my_project/docs/
-→ FAQ生成仕様 → チャンキング戦略 → メタデータ設計 → 支援文書の特定
+→ FAQ生成仕様 → チャンキング戦略 → メタデータ設計 → 支援文書の特定 → spec.md生成
 ```
 
-### Step 3: 構築
+### Step 3: ナレッジデータ生成
+```
+/kb-generate workspace/my_project/
+→ spec.mdに従ってFAQを自動生成 → 品質チェック → レビュー用に出力
+  （ドキュメントそのまま投入の場合はスキップ）
+```
+
+### Step 4: 構築
 ```
 /kb-build workspace/my_project/
-→ ナレッジベース作成 → データアップロード → アプリ設定（API or UIガイド）
+→ ナレッジベース作成 → データアップロード → アプリ設定（API or UIガイド）→ QAチェック
 ```
 
-### Step 4: 評価
+### Step 5: 評価
 ```
 /kb-eval workspace/my_project/
-→ 検索テスト → 根拠性チェック → 網羅性チェック → ギャップ特定
+→ 検索テスト → 根拠性チェック → 網羅性チェック → ギャップ特定 → 不可能性判断
 ```
 
-### Step 5: 展開提案
+### Step 6: 展開提案
 ```
 /kb-report workspace/my_project/
 → 利用者・アクセス方法・運用計画・コスト見積もりの提案書
@@ -122,7 +130,8 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
 | スキル | 出力ファイル（vN/ 内） |
 |--------|-----------|
 | kb-assess | `reports/assess_report.md`（推奨手段・2軸分析含む） |
-| kb-design | `spec.md`（初版生成） + `reports/design_spec.md` + `knowledge/faq_draft.csv` |
+| kb-design | `spec.md`（初版生成） + `reports/design_report.md` |
+| kb-generate | `knowledge/faq_draft.csv` + `knowledge/generation_log.md` |
 | kb-build | `reports/build_guide.md`（構築手順・設定値・QAチェック結果） |
 | kb-eval | `reports/eval_report.md` + `reports/eval_results.json`（不可能性フィンディング含む） |
 | kb-report | `reports/proposal.md`（展開提案書） |
@@ -141,7 +150,8 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
 |--------|---------|----------|
 | **kb-assess** | `/kb-assess [docs]` | ドキュメントやデータを受け取った直後 |
 | **kb-design** | `/kb-design [docs]` | assessの後 |
-| **kb-build** | `/kb-build [project]` | designの後 |
+| **kb-generate** | `/kb-generate [project]` | designの後（FAQ生成。ドキュメントそのまま投入ならスキップ） |
+| **kb-build** | `/kb-build [project]` | generateの後 |
 | **kb-eval** | `/kb-eval [project]` | buildの後 |
 | **kb-report** | `/kb-report [project]` | 評価が終わった後 |
 | **kb-request** | `/kb-request` | 途中で業務担当者への確認が必要な時 |
@@ -150,9 +160,9 @@ reference/hearing_sheet_faq.md       ← FAQボット向けヒアリングシー
 ## ワークフロー
 
 ```
-ヒアリング → ドキュメント受領 → /kb-assess → /kb-design → /kb-build → /kb-eval → /kb-report → /kb-operate
-                                                                ↑    ↓          ↑    ↓
-                                                                └── /kb-request ←─── 改善サイクル
+ヒアリング → ドキュメント受領 → /kb-assess → /kb-design → /kb-generate → /kb-build → /kb-eval → /kb-report → /kb-operate
+                                                                          ↑    ↓            ↑    ↓
+                                                                          └── /kb-request ←─── 改善サイクル
 ```
 
 ## 追加情報が来た時の進め方
